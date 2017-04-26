@@ -25,7 +25,12 @@ import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
+import android.graphics.LinearGradient;
+import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
+import android.graphics.Shader;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
@@ -136,6 +141,8 @@ public class CollapsingToolbarLayout extends FrameLayout {
 
     WindowInsetsCompat mLastInsets;
 
+    private final Paint shaderPaint = new Paint();
+
     public CollapsingToolbarLayout(Context context) {
         this(context, null);
     }
@@ -238,6 +245,8 @@ public class CollapsingToolbarLayout extends FrameLayout {
         TypedArray typedArray = context.obtainStyledAttributes(attrs, net.opacapp.multilinecollapsingtoolbar.R.styleable.CollapsingToolbarLayoutExtension, defStyleAttr, 0);
         mCollapsingTextHelper.setMaxLines(typedArray.getInteger(net.opacapp.multilinecollapsingtoolbar.R.styleable.CollapsingToolbarLayoutExtension_maxLines, 3));
         // END MODIFICATION
+
+        shaderPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_IN));
     }
 
     // BEGIN MODIFICATION: add setMaxLines and getMaxLines
@@ -355,6 +364,26 @@ public class CollapsingToolbarLayout extends FrameLayout {
         if (mContentScrim != null) {
             mContentScrim.setBounds(0, 0, w, h);
         }
+        setShader(h);
+    }
+
+    private void setShader(int height) {
+        if (mCurrentOffset == 0) {
+            shaderPaint.setShader(null);
+        } else {
+            final LinearGradient shader =
+                new LinearGradient(0, height, 0, mToolbar.getHeight() - mCurrentOffset, 0xff000000,
+                    0x00000000, Shader.TileMode.CLAMP);
+            shaderPaint.setShader(shader);
+        }
+    }
+
+    @Override
+    protected void dispatchDraw(Canvas canvas) {
+        canvas.saveLayer(null, null, Canvas.ALL_SAVE_FLAG);
+        super.dispatchDraw(canvas);
+        canvas.drawRect(0, 0, getWidth(), getHeight(), shaderPaint);
+        canvas.restore();
     }
 
     private void ensureToolbar() {
@@ -1306,6 +1335,8 @@ public class CollapsingToolbarLayout extends FrameLayout {
                         break;
                 }
             }
+
+            setShader(getHeight());
 
             // Show or hide the scrims if needed
             updateScrimVisibility();
