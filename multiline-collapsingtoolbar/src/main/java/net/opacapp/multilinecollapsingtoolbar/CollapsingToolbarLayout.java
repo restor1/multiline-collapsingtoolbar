@@ -16,10 +16,6 @@
 
 package net.opacapp.multilinecollapsingtoolbar;
 
-import static android.support.annotation.RestrictTo.Scope.LIBRARY_GROUP;
-import static net.opacapp.multilinecollapsingtoolbar.MathUtils.constrain;
-import static net.opacapp.multilinecollapsingtoolbar.ViewUtils.objectEquals;
-
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.ColorStateList;
@@ -58,9 +54,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.widget.FrameLayout;
-
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+
+import static android.support.annotation.RestrictTo.Scope.LIBRARY_GROUP;
+import static net.opacapp.multilinecollapsingtoolbar.MathUtils.constrain;
+import static net.opacapp.multilinecollapsingtoolbar.ViewUtils.objectEquals;
 
 /**
  * CollapsingToolbarLayout is a wrapper for {@link Toolbar} which implements a collapsing app bar.
@@ -247,6 +246,10 @@ public class CollapsingToolbarLayout extends FrameLayout {
         // END MODIFICATION
 
         shaderPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_IN));
+
+        setBackgroundDrawable(new AnimatableInsetDrawable(
+            getResources().getDrawable(net.opacapp.multilinecollapsingtoolbar.R.drawable.appbar_background), 0, 0, 0, 0));
+
     }
 
     // BEGIN MODIFICATION: add setMaxLines and getMaxLines
@@ -370,11 +373,25 @@ public class CollapsingToolbarLayout extends FrameLayout {
     private void setShader(int height) {
         if (mCurrentOffset == 0) {
             shaderPaint.setShader(null);
+            ViewCompat.setBackground(mToolbar, null);
+            if (getBackground() instanceof AnimatableInsetDrawable) {
+                ((AnimatableInsetDrawable) getBackground()).setInsets(0, 0, 0, 0);
+            }
         } else {
             final LinearGradient shader =
                 new LinearGradient(0, height, 0, mToolbar.getHeight() - mCurrentOffset, 0xff000000,
                     0x00000000, Shader.TileMode.CLAMP);
             shaderPaint.setShader(shader);
+            if (mToolbar.getBackground() == null) {
+                ViewCompat.setBackground(mToolbar, new AnimatableInsetDrawable(
+                    ContextCompat.getDrawable(getContext(), net.opacapp.multilinecollapsingtoolbar.R.drawable.appbar_background), 0, 0, 0, 0));
+            }
+            if (getBackground() instanceof AnimatableInsetDrawable) {
+                ((AnimatableInsetDrawable) getBackground()).setInsets(0, -mCurrentOffset, 0, 0);
+            }
+            if (mToolbar.getBackground() instanceof AnimatableInsetDrawable) {
+                ((AnimatableInsetDrawable) mToolbar.getBackground()).setInsets(0, 0, 0, (mToolbar.getHeight() - getHeight()) - mCurrentOffset);
+            }
         }
     }
 
@@ -382,7 +399,7 @@ public class CollapsingToolbarLayout extends FrameLayout {
     protected void dispatchDraw(Canvas canvas) {
         canvas.saveLayer(null, null, Canvas.ALL_SAVE_FLAG);
         super.dispatchDraw(canvas);
-        canvas.drawRect(0, 0, getWidth(), getHeight(), shaderPaint);
+        canvas.drawRect(0, mToolbar.getHeight() - mCurrentOffset, getWidth(), getHeight(), shaderPaint);
         canvas.restore();
     }
 
