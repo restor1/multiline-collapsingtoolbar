@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "net.opacapp.multilinecollapsingtoolbar.demo"
-        minSdkVersion 9
+        minSdkVersion 16
         targetSdkVersion 25
         versionCode 1
         versionName "1.0"
@@ -17,4 +17,7 @@ dependencies {
     compile 'com.android.support:appcompat-v7:25.3.1'
     compile 'com.android.support:design:25.3.1'
     compile project(':multiline-collapsingtoolbar')
+    debugCompile "com.github.brianPlummer:tinydancer:0.1.1"
+    releaseCompile "com.github.brianPlummer:tinydancer-noop:0.1.1"
+    testCompile "com.github.brianPlummer:tinydancer-noop:0.1.1"
 }
