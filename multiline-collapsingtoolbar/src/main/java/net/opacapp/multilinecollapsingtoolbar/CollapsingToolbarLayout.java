@@ -390,7 +390,7 @@ public class CollapsingToolbarLayout extends FrameLayout {
                 ((AnimatableInsetDrawable) getBackground()).setInsets(0, -mCurrentOffset, 0, 0);
             }
             if (mToolbar.getBackground() instanceof AnimatableInsetDrawable) {
-                ((AnimatableInsetDrawable) mToolbar.getBackground()).setInsets(0, 0, 0, (mToolbar.getHeight() - getHeight()) - mCurrentOffset);
+                ((AnimatableInsetDrawable) mToolbar.getBackground()).setInsets(0, -getStatusBarHeight(), 0, (mToolbar.getHeight() - getHeight()) - mCurrentOffset);
             }
         }
     }
@@ -399,8 +399,12 @@ public class CollapsingToolbarLayout extends FrameLayout {
     protected void dispatchDraw(Canvas canvas) {
         canvas.saveLayer(null, null, Canvas.ALL_SAVE_FLAG);
         super.dispatchDraw(canvas);
-        canvas.drawRect(0, mToolbar.getHeight() - mCurrentOffset, getWidth(), getHeight(), shaderPaint);
+        canvas.drawRect(0, getStatusBarHeight() + mToolbar.getHeight() - mCurrentOffset, getWidth(), getHeight(), shaderPaint);
         canvas.restore();
+    }
+
+    public int getStatusBarHeight() {
+        return mLastInsets != null ? mLastInsets.getSystemWindowInsetTop() : 0;
     }
 
     private void ensureToolbar() {
